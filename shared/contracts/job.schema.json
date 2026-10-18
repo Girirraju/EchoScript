@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EchoScript Job",
+  "type": "object",
+  "required": ["id", "filename", "status", "video_status", "created_at"],
+  "properties": {
+    "id": {"type": "string", "minLength": 8},
+    "filename": {"type": "string", "minLength": 1},
+    "status": {"enum": ["CREATED", "UPLOADED", "RUNNING", "TRANSCRIBED", "FAILED"]},
+    "video_status": {"enum": ["NONE", "PENDING", "RENDERING", "DONE", "FAILED"]},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}
+

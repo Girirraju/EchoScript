@@ -1,0 +1,10 @@
+services:
+  video-service:
+    build: ./services/video-service
+    environment:
+      APP_VERSION: 0.1.0
+      MOCK_VIDEO: "true"
+      INTERNAL_SERVICE_TOKEN: local-video-token
+    ports:
+      - "8001:8001"
+

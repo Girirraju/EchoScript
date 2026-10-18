@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata: {name: transcription-JOB_ID, namespace: echoscript, labels: {app: transcribe-worker}}
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 7200
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata: {labels: {app: transcribe-worker}}
+    spec:
+      restartPolicy: Never
+      nodeSelector: {role: worker}
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: worker
+          image: ACCOUNT.dkr.ecr.ap-south-1.amazonaws.com/echoscript/transcribe-worker:VERSION
+          args: ["--input", "/work/input/audio", "--output", "/work/output", "--language", "auto"]
+          resources: {requests: {cpu: "1", memory: 2Gi}, limits: {cpu: "3", memory: 6Gi}}
+

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: echoscript
+  labels: {app.kubernetes.io/part-of: echoscript}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: echoscript-quota, namespace: echoscript}
+spec:
+  hard: {requests.cpu: "6", requests.memory: 12Gi, limits.cpu: "12", limits.memory: 24Gi, pods: "40"}
+

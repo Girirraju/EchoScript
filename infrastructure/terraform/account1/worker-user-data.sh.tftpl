@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+dnf install -y awscli
+TOKEN=$(aws ssm get-parameter --name "${token_parameter}" --with-decryption --region "${region}" --query Parameter.Value --output text)
+curl -sfL https://get.k3s.io | K3S_URL="${server_url}" K3S_TOKEN="$TOKEN" INSTALL_K3S_EXEC="agent --node-label role=worker" sh -
+

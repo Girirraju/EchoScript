@@ -1,0 +1,11 @@
+pipeline {
+  agent any
+  options { timestamps(); disableConcurrentBuilds() }
+  stages {
+    stage('Validate manifests') { steps { sh 'kubectl apply --dry-run=client -f infrastructure/kubernetes/' } }
+    stage('Build workers') { steps { sh 'docker build -t transcribe-worker:${GIT_COMMIT} services/transcribe-worker'; sh 'docker build -t video-service:${GIT_COMMIT} services/video-service'; sh 'trivy image --exit-code 1 --severity CRITICAL transcribe-worker:${GIT_COMMIT}' } }
+    stage('Deploy runtime') { steps { sh 'kubectl apply -f infrastructure/kubernetes/monitoring'; sh './ci/scripts/deploy-runtime.sh ${GIT_COMMIT}' } }
+    stage('Smoke') { steps { sh './scripts/smoke-test.sh' } }
+  }
+}
+

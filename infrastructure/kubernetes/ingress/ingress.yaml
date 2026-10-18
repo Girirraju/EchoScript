@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: echoscript
+  namespace: echoscript
+  annotations: {traefik.ingress.kubernetes.io/router.entrypoints: websecure}
+spec:
+  tls: [{hosts: [echoscript.example.com], secretName: echoscript-tls}]
+  rules:
+    - host: echoscript.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend: {service: {name: ingest-service, port: {number: 8000}}}
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: gateway-ui, port: {number: 80}}}
+

@@ -1,0 +1,13 @@
+{
+  "title": "EchoScript Operations",
+  "uid": "echoscript-ops",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Active jobs", "targets": [{"expr": "echoscript_active_jobs"}], "gridPos": {"x": 0, "y": 0, "w": 6, "h": 5}},
+    {"id": 2, "type": "timeseries", "title": "Job submissions", "targets": [{"expr": "rate(echoscript_job_submissions_total[5m])"}], "gridPos": {"x": 6, "y": 0, "w": 9, "h": 7}},
+    {"id": 3, "type": "timeseries", "title": "API latency p95", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(echoscript_http_request_duration_seconds_bucket[5m])) by (le, route))"}], "gridPos": {"x": 15, "y": 0, "w": 9, "h": 7}},
+    {"id": 4, "type": "timeseries", "title": "Job outcomes", "targets": [{"expr": "sum(rate(echoscript_job_results_total[10m])) by (status)"}], "gridPos": {"x": 0, "y": 7, "w": 12, "h": 7}}
+  ]
+}
+

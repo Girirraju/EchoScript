@@ -1,0 +1,33 @@
+services:
+  ingest-service:
+    build: ./services/ingest-service
+    environment:
+      APP_ENV: local
+      MOCK_AUTH: "true"
+      MOCK_PROCESSING: "true"
+      MOCK_VIDEO: "true"
+      PUBLIC_API_URL: http://localhost:8000
+      CORS_ORIGINS: http://localhost:5173
+      DATA_DIR: /data
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+        VITE_MOCK_AUTH: "true"
+    ports:
+      - "5173:80"
+    depends_on:
+      ingest-service:
+        condition: service_healthy
+
