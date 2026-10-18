@@ -81,7 +81,6 @@ function Transcribe() {
   const navigate = useNavigate()
   const [file, setFile] = useState<File | null>(null)
   const [language, setLanguage] = useState('auto')
-  const [video, setVideo] = useState(false)
   const [progress, setProgress] = useState(0)
   const [stage, setStage] = useState('')
   const [error, setError] = useState('')
@@ -92,7 +91,7 @@ function Transcribe() {
     if (!file) return
     setError(''); setStage('Creating job')
     try {
-      const created = await api.create(file, language, video)
+      const created = await api.create(file, language)
       setStage('Uploading audio'); controller.current = new AbortController()
       await uploadFile(created.upload_url, file, created.upload_headers, setProgress, controller.current.signal)
       setStage('Starting transcription'); await api.start(created.job.id)
@@ -110,7 +109,7 @@ function Transcribe() {
     <div className="studio-layout"><section className="panel upload-panel"><div className="step-label"><span>1</span><div><h2>Add your audio</h2><p>Start with a recording, lecture, meeting, or podcast.</p></div></div>
       <div className={`dropzone ${file ? 'has-file' : ''}`} onClick={() => inputRef.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); choose(event.dataTransfer.files[0]) }}><input ref={inputRef} type="file" accept=".mp3,.wav,.m4a,audio/*" hidden onChange={event => choose(event.target.files?.[0])} />{file ? <><span className="selected-file"><FileAudio /></span><h3>{file.name}</h3><p>{(file.size / 1_048_576).toFixed(2)} MB · Ready to upload</p><div><button className="text-button">Replace file</button><button className="text-button danger" onClick={event => { event.stopPropagation(); setFile(null) }}>Remove</button></div></> : <><span className="upload-icon"><CloudUpload /></span><h3>Drag and drop your audio here</h3><p>or <b>browse files</b> from your device</p><small>MP3, WAV or M4A · Up to {Math.round((capabilities.data?.max_upload_bytes || 262_144_000) / 1_048_576)} MB</small></>}</div>
       {error && <div className="inline-error"><CircleAlert />{error}</div>}
-      <div className="step-label options-step"><span>2</span><div><h2>Choose your options</h2><p>Fine-tune how EchoScript processes this recording.</p></div></div><div className="option-grid"><label><span><Languages />Transcription language</span><select value={language} onChange={event => setLanguage(event.target.value)}>{(capabilities.data?.languages || [{ value: 'auto', label: 'Auto-detect' }, { value: 'en', label: 'English' }]).map(item => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label><label className="toggle-option"><span><Video />Generate AI recap video<small>Creates a short presenter-led summary after transcription.</small></span><input type="checkbox" checked={video} onChange={event => setVideo(event.target.checked)} /><i /></label></div>
+      <div className="step-label options-step"><span>2</span><div><h2>Choose transcription language</h2><p>Your audio will produce a transcript and subtitle files only.</p></div></div><div className="option-grid"><label><span><Languages />Transcription language</span><select value={language} onChange={event => setLanguage(event.target.value)}>{(capabilities.data?.languages || [{ value: 'auto', label: 'Auto-detect' }, { value: 'en', label: 'English' }]).map(item => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label><label className="toggle-option"><span><WandSparkles />AI video is a separate feature<small>After transcription, open AI Recap Studio whenever you want to create a HeyGen video.</small></span></label></div>
       {stage && <div className="upload-progress"><div><span>{stage}</span><b>{progress}%</b></div><span><i style={{ width: `${Math.max(progress, 8)}%` }} /></span><button onClick={() => controller.current?.abort()}>Cancel upload</button></div>}
       <div className="form-footer"><span><Zap /> Direct encrypted upload. No browser credentials are stored.</span><button className="button primary large" disabled={!file || !!stage} onClick={submit}>{stage ? <LoaderCircle className="spin" /> : <Sparkles />}{stage || 'Start transcription'}</button></div></section>
       <aside className="tip-card"><div className="tip-visual"><div className="mini-wave">{Array.from({ length: 18 }, (_, i) => <i key={i} style={{ height: `${12 + ((i * 13) % 34)}px` }} />)}</div><Headphones /></div><span>FOR BEST RESULTS</span><h3>Clear audio creates clearer knowledge.</h3><ul><li><Check />Use a quiet recording</li><li><Check />Keep speakers close to the mic</li><li><Check />Avoid overlapping conversations</li></ul></aside>

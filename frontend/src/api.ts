@@ -16,7 +16,7 @@ export const api = {
   capabilities: async () => (await client.get<Capabilities>('/api/capabilities')).data,
   start: async (id: string) => (await client.post<Job>(`/api/jobs/${id}/start`)).data,
   video: async (id: string) => (await client.post<Job>(`/api/jobs/${id}/video`)).data,
-  create: async (file: File, language: string, generateVideo: boolean) => (await client.post('/api/jobs', { filename: file.name, content_type: file.type || mimeFromName(file.name), size_bytes: file.size, language, generate_video: generateVideo })).data as { job: Job; upload_url: string; upload_method: string; upload_headers: Record<string, string> },
+  create: async (file: File, language: string) => (await client.post('/api/jobs', { filename: file.name, content_type: file.type || mimeFromName(file.name), size_bytes: file.size, language, generate_video: false })).data as { job: Job; upload_url: string; upload_method: string; upload_headers: Record<string, string> },
 }
 function mimeFromName(name: string) { const extension = name.split('.').pop()?.toLowerCase(); return extension === 'wav' ? 'audio/wav' : extension === 'm4a' ? 'audio/mp4' : 'audio/mpeg' }
 export function absoluteAsset(path?: string) { return path ? `${apiBase}${path}` : undefined }
