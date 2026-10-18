@@ -1,8 +1,14 @@
 import axios from 'axios'
+import { bearerToken } from './auth'
 import type { Capabilities, Job } from './types'
 
 export const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const client = axios.create({ baseURL: apiBase, timeout: 20000 })
+client.interceptors.request.use(config => {
+  const token = bearerToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
 
 export const api = {
   jobs: async () => (await client.get<Job[]>('/api/jobs')).data,
@@ -12,16 +18,8 @@ export const api = {
   video: async (id: string) => (await client.post<Job>(`/api/jobs/${id}/video`)).data,
   create: async (file: File, language: string, generateVideo: boolean) => (await client.post('/api/jobs', { filename: file.name, content_type: file.type || mimeFromName(file.name), size_bytes: file.size, language, generate_video: generateVideo })).data as { job: Job; upload_url: string; upload_method: string; upload_headers: Record<string, string> },
 }
-
-function mimeFromName(name: string) {
-  const extension = name.split('.').pop()?.toLowerCase()
-  return extension === 'wav' ? 'audio/wav' : extension === 'm4a' ? 'audio/mp4' : 'audio/mpeg'
-}
-
-export function absoluteAsset(path?: string) {
-  return path ? `${apiBase}${path}` : undefined
-}
-
+function mimeFromName(name: string) { const extension = name.split('.').pop()?.toLowerCase(); return extension === 'wav' ? 'audio/wav' : extension === 'm4a' ? 'audio/mp4' : 'audio/mpeg' }
+export function absoluteAsset(path?: string) { return path ? `${apiBase}${path}` : undefined }
 export function uploadFile(url: string, file: File, headers: Record<string, string>, onProgress: (value: number) => void, signal: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
     const request = new XMLHttpRequest()
@@ -34,4 +32,3 @@ export function uploadFile(url: string, file: File, headers: Record<string, stri
     request.send(file)
   })
 }
-
