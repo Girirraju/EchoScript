@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-
-const mockAuth = import.meta.env.VITE_MOCK_AUTH !== 'false'
+export const mockAuth = import.meta.env.VITE_MOCK_AUTH !== 'false'
 const domain = import.meta.env.VITE_COGNITO_DOMAIN || ''
 const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID || ''
 const redirectUri = import.meta.env.VITE_COGNITO_REDIRECT_URI || `${window.location.origin}/auth/callback`
 const scope = import.meta.env.VITE_COGNITO_SCOPE || 'openid email profile'
 let accessToken = ''
+let loginCompletion: Promise<void> | null = null
 
 function base64Url(bytes: Uint8Array) {
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -24,7 +22,14 @@ export async function beginLogin(signUp = false) {
   window.location.assign(`${domain}/${signUp ? 'signup' : 'oauth2/authorize'}?${parameters}`)
 }
 
-async function completeLogin() {
+export function completeLogin() {
+  if (!loginCompletion) {
+    loginCompletion = exchangeCode().finally(() => { loginCompletion = null })
+  }
+  return loginCompletion
+}
+
+async function exchangeCode() {
   const parameters = new URLSearchParams(window.location.search)
   const code = parameters.get('code')
   const returnedState = parameters.get('state')
@@ -41,23 +46,4 @@ async function completeLogin() {
 }
 
 export function bearerToken() { return accessToken }
-
-export function AuthGate({ children }: { children: React.ReactNode }) {
-  const location = useLocation()
-  const [state, setState] = useState<'ready' | 'loading' | 'error'>(mockAuth ? 'ready' : 'loading')
-  useEffect(() => {
-    if (mockAuth) return
-    if (location.pathname === '/auth/callback') {
-      setState('loading')
-      completeLogin().then(() => window.location.replace('/dashboard')).catch(() => setState('error'))
-      return
-    }
-    if (location.pathname === '/') { setState('ready'); return }
-    if (!accessToken) { setState('loading'); beginLogin().catch(() => setState('error')) }
-    else setState('ready')
-  }, [location.pathname])
-  if (state === 'loading') return <div className="center-page"><h1>Securely signing you in…</h1><p>Completing the Cognito authorization flow.</p></div>
-  if (state === 'error') return <div className="center-page"><h1>Session could not be started</h1><p>Return to the welcome page and try again.</p><a className="button primary" href="/">Return home</a></div>
-  return children
-}
 

@@ -9,3 +9,5 @@ data/
 *.pyc
 *.tfstate*
 .terraform/
+.local-run/
+.ruff_cache/
